@@ -5,7 +5,7 @@ A DCGAN (Deep Convolutional Generative Adverserial Network) model to convert ima
 This project is our term project for our Computer Vision with Deep Learning course.
 
 ## Dependencies
-### Python 3.8
+- ### Python 3.8
 - PyTorch
 - Pillow (PIL)
 
