@@ -13,7 +13,16 @@ else:
     print("CPU")
 
 
-class Net(nn.Module):
+class Discriminator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        pass
+
+    def forward(self, x):
+        pass
+
+
+class Generator(nn.Module):
     def __init__(self):
         super().__init__()
         pass
