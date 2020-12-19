@@ -6,8 +6,8 @@ This project is our term project for our Computer Vision with Deep Learning cour
 
 ## Dependencies
 - ### Python 3.8
-- PyTorch
-- Pillow (PIL)
+  - PyTorch
+  - Pillow (PIL)
 
 ## Other
 Developed by: @Sierox, @lunarks, @erensanlier
