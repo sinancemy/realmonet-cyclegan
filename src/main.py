@@ -1,10 +1,16 @@
-from . import model as model_
-from . import dataset as dataset_
+import os
 
-REBUILD_DATASET = False
+import model as model_
+import dataset.manager as dataset_
+
+os.chdir("..")
+
+REBUILD_DATASET = True
 
 if REBUILD_DATASET:
     dataset_.build()
 
 data = dataset_.load()
-model = model_.Net()
+
+generator = model_.Generator()
+discriminator = model_.Discriminator()
