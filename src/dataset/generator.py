@@ -17,7 +17,7 @@ def process_directory(src_dir, dst_dir, target_resolution):
     n = 0
     for img_name in os.listdir(src_dir):
         src = "%s/%s" % (src_dir, img_name)
-        dst = "%s/%s.jpg" % (dst_dir, n)
+        dst = "%s/%s.jpg" % (dst_dir, str(n).zfill(4))
         img = Image.open(src)
         w, h = img.size
         if w >= w_ and h >= h_:
