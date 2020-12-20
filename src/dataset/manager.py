@@ -1,23 +1,29 @@
 import pandas as pd
-import numpy as np
-
 from . import generator as gen
 
-PHOTO_SRC_DIR = "data/raw_photos"
-PHOTO_DST_DIR = "data/training_set"
-PAINTING_SRC_DIR = "data/raw_paintings"
-PAINTING_DST_DIR = "data/testing_set"
-INPUT_W = INPUT_H = 1024
+PHOTO_SRC_DIR = "data/generator/raw_photos"
+PHOTO_DST_DIR = "data/generator/set_photos"
+PAINTING_SRC_DIR = "data/generator/raw_paintings"
+PAINTING_DST_DIR = "data/generator/set_paintings"
+DATA_RES = (1024, 1024)
 
 
 def generate():
-    gen.filter_and_crop(PHOTO_SRC_DIR, PHOTO_DST_DIR, INPUT_W, INPUT_H)
-    gen.filter_and_crop(PAINTING_SRC_DIR, PAINTING_DST_DIR, INPUT_W, INPUT_H)
+    """Runs the generator to convert raw images to dataset images."""
+    gen.process_directory(PHOTO_SRC_DIR, PHOTO_DST_DIR, DATA_RES)
+    gen.process_directory(PAINTING_SRC_DIR, PAINTING_DST_DIR, DATA_RES)
 
 
 def build():
+    """Divides the dataset images into testing and training sets creates CSV files for the sets with the images."""
+    # TODO: Implement
     pass
 
 
 def load():
-    pass
+    """
+    Loads the CSV files for the testing and training sets.
+    :return: dataset. TODO: Elaborate
+    """
+    # TODO: Implement
+    return None

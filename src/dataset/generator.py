@@ -2,25 +2,30 @@ import os
 from PIL import Image
 
 
-def filter_and_crop(src_dir, dst_dir, target_w, target_h):
+def process_directory(src_dir, dst_dir, target_resolution):
     """
-    For every .jpg file in the source directory, crops the image (center-preserving) to the given dimensions if the
-    dimensions of the .jpg file are greater than the target dimensions, and saves it to the destination directory.
+    For every .jpg file in the source directory equal to or larger than the target resolution, downscales the image as
+    much as possible without going below the crop resolution, crops the image (center-preserving) to the given
+    dimensions, and saves it to the destination directory.
 
     :param src_dir: Path to source directory containing .jpg files only.
-    :param dst_dir: Path to destination directory where filtered and cropped images will be written.
-    :param target_w: Width of the outputted images.
-    :param target_h: Height of the outputted images.
-    :return:
+    :param dst_dir: Path to destination directory where downscaled and cropped images will be written to.
+    :param target_resolution: (w, h) where w = "Width of the outputted images", h = "Height of the outputted images".
+    :return: n: Number of images written to the destination directory.
     """
+    w_, h_ = target_resolution
     n = 0
     for img_name in os.listdir(src_dir):
         src = "%s/%s" % (src_dir, img_name)
         dst = "%s/%s.jpg" % (dst_dir, n)
         img = Image.open(src)
         w, h = img.size
-        if w >= target_w and h >= target_h:
-            img_cropped = img.crop((w / 2 - target_w / 2, h / 2 - target_h / 2,
-                                    w / 2 + target_w / 2, h / 2 + target_h / 2))
+        if w >= w_ and h >= h_:
+            f = w / w_ if w < h else h / h_
+            w, h = (int(w/f), int(h/f))
+            img_downscaled = img.resize((w, h))
+            img_cropped = img_downscaled.crop((w / 2 - w_ / 2, h / 2 - h_ / 2,
+                                               w / 2 + w_ / 2, h / 2 + h_ / 2))
             img_cropped.save(dst)
             n += 1
+    return n
