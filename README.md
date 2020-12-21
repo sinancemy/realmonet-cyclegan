@@ -7,6 +7,8 @@ This project is our term project for our Computer Vision with Deep Learning cour
 ## Dependencies
 - ### Python 3.8
   - PyTorch
+  - scikit-image
+  - tqdm
   
 ## Dataset Sources
 - [Kaggle](https://www.kaggle.com/arnaud58/landscape-pictures): Filtered by handpicking and code, appropriated by code.

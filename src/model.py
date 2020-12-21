@@ -3,10 +3,10 @@ import torch.nn as nn
 
 if torch.cuda.is_available():
     device = torch.device("cuda:0")
-    print("GPU")
+    print("Model working on GPU")
 else:
     device = torch.device("cpu")
-    print("CPU")
+    print("Model working on CPU")
 
 
 class Discriminator(nn.Module):
