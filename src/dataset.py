@@ -1,32 +1,39 @@
 import os
-import random
 
-import numpy as np
+import torch
+from torch.utils.data import Dataset
 from skimage.io import imread
-from tqdm import tqdm
 from PIL import Image
+from tqdm import tqdm
 
-RAW_PHOTO_DIR = "data/photos_raw"
-SET_PHOTO_DIR = "data/photos_set"
-RAW_PAINTING_DIR = "data/paintings_raw"
-SET_PAINTING_DIR = "data/paintings_set"
+PHOTO_RAW_DIR = "data/photos_raw"
+PHOTO_SET_DIR = "data/photos_set"
+PAINTING_RAW_DIR = "data/paintings_raw"
+PAINTING_SET_DIR = "data/paintings_set"
 DATA_RESOLUTION = (1024, 1024)
+
+
+class RealMoNetDataset(Dataset):
+    def __init__(self, set_dir):
+        self.set_dir = set_dir
+
+    def __len__(self):
+        return len(os.listdir(self.set_dir))
+
+    def __getitem__(self, i):
+        image = imread(os.path.join(self.set_dir, "%s.jpg" % str(i).zfill(4)))
+        return torch.from_numpy(image).float()/255
+
+    def get_split(self, train_percentage):
+        train = int(self.__len__() * train_percentage)
+        test = self.__len__() - train
+        return [train, test]
 
 
 def build():
     """Runs the generator to convert raw images to dataset images."""
-    _build_set("photo", RAW_PHOTO_DIR, SET_PHOTO_DIR, DATA_RESOLUTION)
-    _build_set("painting", RAW_PAINTING_DIR, SET_PAINTING_DIR, DATA_RESOLUTION)
-
-
-def load(shuffle=True):
-    """
-    Loads the dataset images as numpy matrices.
-    :return: (np((N_photos, w, h, 3)), np((N_paintings, w, hH, 3))) where w, h = DATA_RESOLUTION
-    """
-    photo_set = _load_set("photo", SET_PHOTO_DIR, shuffle)
-    painting_set = _load_set("painting", SET_PAINTING_DIR, shuffle)
-    return photo_set, painting_set
+    _build_set("photos", PHOTO_RAW_DIR, PHOTO_SET_DIR, DATA_RESOLUTION)
+    _build_set("paintings", PAINTING_RAW_DIR, PAINTING_SET_DIR, DATA_RESOLUTION)
 
 
 def _build_set(name, src_dir, dst_dir, target_resolution):
@@ -44,8 +51,8 @@ def _build_set(name, src_dir, dst_dir, target_resolution):
     w_, h_ = target_resolution
     n = 0
     for img_name in tqdm(os.listdir(src_dir), desc="Building %s set" % name):
-        src = "%s/%s" % (src_dir, img_name)
-        dst = "%s/%s.jpg" % (dst_dir, str(n).zfill(4))
+        src = os.path.join(src_dir, img_name)
+        dst = os.path.join(dst_dir, "%s.jpg" % str(n).zfill(4))
         img = Image.open(src)
         w, h = img.size
         if w >= w_ and h >= h_:
@@ -57,23 +64,3 @@ def _build_set(name, src_dir, dst_dir, target_resolution):
             img_cropped.save(dst)
             n += 1
     return n
-
-
-def _load_set(name, src_dir, shuffle=True):
-    """
-    Loads every .jpg file in the source directory into a numpy array with shape (N, w, h, 3) where
-    N = #.jpg files in src_dir
-    w, h = DATA_RESOLUTION
-    Shuffles the dataset if shuffle = True.
-
-    :param name: Name of the dataset (for printing purposes).
-    :param src_dir: Path to source directory containing .jpg files only.
-    :param shuffle: if True: shuffles the dataset.
-    :return: np((N, w, h, 3)), explained above.
-    """
-    img_list = list()
-    for set_img in tqdm(os.listdir(src_dir), desc="Loading %s set" % name):
-        img_list.append(imread("%s/%s" % (src_dir, set_img)))
-    if shuffle:
-        random.shuffle(img_list)
-    return np.array(img_list)
