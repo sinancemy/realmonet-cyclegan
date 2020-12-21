@@ -18,3 +18,18 @@ class Generator(nn.Module):
 
     def forward(self, x):
         pass
+
+
+class RealMoNetModel:
+    def __init__(self, name):
+        self.name = name
+        self.D_A, self.G_A = Discriminator(), Generator()
+        self.D_B, self.G_B = Discriminator(), Generator()
+
+
+def save(model):
+    pass
+
+
+def load(model):
+    pass

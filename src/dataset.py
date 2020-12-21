@@ -22,7 +22,7 @@ class RealMoNetDataset(Dataset):
 
     def __getitem__(self, i):
         image = imread(os.path.join(self.set_dir, "%s.jpg" % str(i).zfill(4)))
-        return torch.from_numpy(image).float()/255
+        return torch.from_numpy(image).float() / 255
 
     def get_split(self, train_percentage):
         train = int(self.__len__() * train_percentage)
@@ -57,7 +57,7 @@ def _build_set(name, src_dir, dst_dir, target_resolution):
         w, h = img.size
         if w >= w_ and h >= h_:
             f = w / w_ if w < h else h / h_
-            w, h = (int(w/f), int(h/f))
+            w, h = (int(w / f), int(h / f))
             img_downscaled = img.resize((w, h))
             img_cropped = img_downscaled.crop((w / 2 - w_ / 2, h / 2 - h_ / 2,
                                                w / 2 + w_ / 2, h / 2 + h_ / 2))
