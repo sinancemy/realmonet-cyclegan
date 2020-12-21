@@ -64,11 +64,11 @@ def _load_set(name, src_dir, shuffle=True):
     Loads every .jpg file in the source directory into a numpy array with shape (N, w, h, 3) where
     N = #.jpg files in src_dir
     w, h = DATA_RESOLUTION
-    Shuffles the first dimension if "shuffle".
+    Shuffles the dataset if shuffle = True.
 
     :param name: Name of the dataset (for printing purposes).
     :param src_dir: Path to source directory containing .jpg files only.
-    :param shuffle: If true: shuffles the first dimension of the numpy array before returning.
+    :param shuffle: if True: shuffles the dataset.
     :return: np((N, w, h, 3)), explained above.
     """
     img_list = list()
