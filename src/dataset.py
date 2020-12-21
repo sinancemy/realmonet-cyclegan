@@ -2,7 +2,7 @@ import os
 import random
 
 import numpy as np
-import skimage.io as imio
+from skimage.io import imread
 from tqdm import tqdm
 from PIL import Image
 
@@ -73,7 +73,7 @@ def _load_set(name, src_dir, shuffle=True):
     """
     img_list = list()
     for set_img in tqdm(os.listdir(src_dir), desc="Loading %s set" % name):
-        img_list.append(imio.imread("%s/%s" % (src_dir, set_img)))
+        img_list.append(imread("%s/%s" % (src_dir, set_img)))
     if shuffle:
         random.shuffle(img_list)
     return np.array(img_list)
