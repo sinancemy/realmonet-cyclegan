@@ -1,4 +1,4 @@
-# vision-project
+# RealMoNet
 A CycleGAN model to convert images of paintings to realistic photo-like images and vice-versa.
 
 ## Motivation
