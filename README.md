@@ -1,5 +1,5 @@
-# RealMoNet
-A CycleGAN model to convert images of paintings to realistic photo-like images and vice-versa.
+# RealMoNet [WIP]
+A CycleGAN model to convert images of paintings to realistic photo-like images and vice versa.
 
 ## Motivation
 This project is our term project for our Computer Vision with Deep Learning course.
