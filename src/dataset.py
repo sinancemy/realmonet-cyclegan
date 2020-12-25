@@ -32,17 +32,16 @@ class RealMoNetDataset(Dataset):
 
 def build():
     """Runs the generator to convert raw images to dataset images."""
-    _build_set("photos", PHOTO_RAW_DIR, PHOTO_SET_DIR, DATA_RESOLUTION)
-    _build_set("paintings", PAINTING_RAW_DIR, PAINTING_SET_DIR, DATA_RESOLUTION)
+    _build_set(PHOTO_RAW_DIR, PHOTO_SET_DIR, DATA_RESOLUTION)
+    _build_set(PAINTING_RAW_DIR, PAINTING_SET_DIR, DATA_RESOLUTION)
 
 
-def _build_set(name, src_dir, dst_dir, target_resolution):
+def _build_set(src_dir, dst_dir, target_resolution):
     """
     For every .jpg file in the source directory equal to or larger than the target resolution, downscales the image as
     much as possible without going below the crop resolution, crops the image (center-preserving) to the given
     dimensions, and saves it to the destination directory.
 
-    :param name: Name of the dataset (for printing purposes).
     :param src_dir: Path to source directory containing .jpg files only.
     :param dst_dir: Path to destination directory where downscaled and cropped images will be written to.
     :param target_resolution: (w, h) where w = "Width of the outputted images", h = "Height of the outputted images".
@@ -50,7 +49,7 @@ def _build_set(name, src_dir, dst_dir, target_resolution):
     """
     w_, h_ = target_resolution
     n = 0
-    for img_name in tqdm(os.listdir(src_dir), desc="Building %s set" % name):
+    for img_name in tqdm(os.listdir(src_dir), desc="Building set from %s" % src_dir):
         src = os.path.join(src_dir, img_name)
         dst = os.path.join(dst_dir, "%s.jpg" % str(n).zfill(4))
         img = Image.open(src)
