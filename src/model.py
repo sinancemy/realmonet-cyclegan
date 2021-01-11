@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class Swish(nn.Module):
     def __init__(self, beta):
-        super.__init__()
+        super().__init__()
         self.beta = beta
 
     def forward(self, x):
@@ -14,14 +14,14 @@ class Swish(nn.Module):
 
 class ConvolutionalLayer(nn.Module):
     def __init__(self, in_features, out_features, kernel_size, stride=1, padding=0, normalize=True):
-        super.__init__()
+        super().__init__()
 
         self.layers = [nn.Conv2d(in_features, out_features, kernel_size=kernel_size, stride=stride, padding=padding)]
         if normalize:
             self.layers += [nn.InstanceNorm2d(out_features)]
         self.layers += [nn.ReLU()]
 
-        self.layers = nn.Sequential(self.layers)
+        self.layers = nn.Sequential(*self.layers)
 
     def forward(self, x):
         return self.layers(x)
@@ -29,7 +29,7 @@ class ConvolutionalLayer(nn.Module):
 
 class TransposeConvolutionalLayer(nn.Module):
     def __init__(self, in_features, out_features, kernel_size, stride=1, padding=0, output_padding=1, normalize=True):
-        super.__init__()
+        super().__init__()
 
         self.layers = [nn.ConvTranspose2d(in_features, out_features, kernel_size=kernel_size, stride=stride,
                                           padding=padding, output_padding=output_padding)]
@@ -37,7 +37,7 @@ class TransposeConvolutionalLayer(nn.Module):
             self.layers += [nn.InstanceNorm2d(out_features)]
         self.layers += [nn.ReLU()]
 
-        self.layers = nn.Sequential(self.layers)
+        self.layers = nn.Sequential(*self.layers)
 
     def forward(self, x):
         return self.layers(x)
@@ -45,7 +45,7 @@ class TransposeConvolutionalLayer(nn.Module):
 
 class ResidualBlock(nn.Module):
     def __init__(self, features):
-        super.__init__()
+        super().__init__()
 
         self.residual = [
             nn.ReflectionPad2d(1),
@@ -84,39 +84,41 @@ class Generator(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.model = [nn.ReflectionPad2d(3)]
+        self.layers = [nn.ReflectionPad2d(3)]
 
-        self.model += [
+        self.layers += [
             ConvolutionalLayer(3, 64, 7, 1, 0),
             ConvolutionalLayer(64, 128, 3, 2, 1),
             ConvolutionalLayer(128, 256, 3, 2, 1)
         ]
 
         for _ in range(11):
-            self.model += [ResidualBlock(256)]
+            self.layers += [ResidualBlock(256)]
 
-        self.model += [
+        self.layers += [
             TransposeConvolutionalLayer(256, 128, 3, 2, 1, 1),
             TransposeConvolutionalLayer(128, 64, 3, 2, 1, 1)
         ]
 
-        self.model += [
+        self.layers += [
             nn.ReflectionPad2d(3),
             nn.Conv2d(64, 3, 7),
             nn.Tanh()
         ]
 
-        self.layers = nn.Sequential(self.model)
+        self.layers = nn.Sequential(*self.layers)
 
     def forward(self, x):
-        return self.model(x)
+        return self.layers(x)
 
 
 class RealMoNetModel:
     def __init__(self, name):
         self.name = name
-        self.D_A, self.G_A = Discriminator(), Generator()
-        self.D_B, self.G_B = Discriminator(), Generator()
+        self.D_A = Discriminator()
+        self.G_A = Generator()
+        self.D_B = Discriminator()
+        self.G_B = Generator()
 
 
 def save(model):
