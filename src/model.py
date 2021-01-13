@@ -1,124 +1,134 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
+import dataset
 
 
 class Swish(nn.Module):
     def __init__(self, beta):
-        super().__init__()
+        super(Swish, self).__init__()
         self.beta = beta
 
     def forward(self, x):
         return x * torch.sigmoid(self.beta * x)
 
 
-class ConvolutionalLayer(nn.Module):
-    def __init__(self, in_features, out_features, kernel_size, stride=1, padding=0, normalize=True):
-        super().__init__()
-
-        self.layers = [nn.Conv2d(in_features, out_features, kernel_size=kernel_size, stride=stride, padding=padding)]
-        if normalize:
-            self.layers += [nn.InstanceNorm2d(out_features)]
-        self.layers += [nn.ReLU()]
-
-        self.layers = nn.Sequential(*self.layers)
-
-    def forward(self, x):
-        return self.layers(x)
-
-
-class TransposeConvolutionalLayer(nn.Module):
-    def __init__(self, in_features, out_features, kernel_size, stride=1, padding=0, output_padding=1, normalize=True):
-        super().__init__()
-
-        self.layers = [nn.ConvTranspose2d(in_features, out_features, kernel_size=kernel_size, stride=stride,
-                                          padding=padding, output_padding=output_padding)]
-        if normalize:
-            self.layers += [nn.InstanceNorm2d(out_features)]
-        self.layers += [nn.ReLU()]
-
-        self.layers = nn.Sequential(*self.layers)
-
-    def forward(self, x):
-        return self.layers(x)
-
-
 class ResidualBlock(nn.Module):
     def __init__(self, features):
-        super().__init__()
+        super(ResidualBlock, self).__init__()
 
-        self.residual = [
+        self.model = nn.Sequential(
             nn.ReflectionPad2d(1),
-            ConvolutionalLayer(features, features, 3, 1, 0),
+            nn.Conv2d(features, features, 3),
+            nn.InstanceNorm2d(features),
+            Swish(1.4),
             nn.ReflectionPad2d(1),
-            ConvolutionalLayer(features, features, 3, 1, 0)
-        ]
+            nn.Conv2d(features, features, 3),
+            nn.InstanceNorm2d(features),
+        )
 
     def forward(self, x):
-        x_initial = x
-        for layer in self.model:
-            x = layer(x)
-        return x_initial + x
+        return x + self.model(x)
 
 
 class Discriminator(nn.Module):
     def __init__(self):
-        super().__init__()
+        super(Discriminator, self).__init__()
 
-        self.layers = [
-            ConvolutionalLayer(3, 64, 4, 2, 1, False),
-            ConvolutionalLayer(64, 128, 4, 2, 1),
-            ConvolutionalLayer(128, 256, 4, 2, 1),
-            ConvolutionalLayer(256, 512, 4, 2, 1),
-            ConvolutionalLayer(512, 1024, 4, 2, 1),
-            nn.Conv2d(1024, 1, 4, padding=1),
-        ]
+        def discriminator_block(in_filters, out_filters, normalize=True):
+            layers = [nn.Conv2d(in_filters, out_filters, 4, stride=2, padding=1)]
+            if normalize:
+                layers.append(nn.InstanceNorm2d(out_filters))
+            layers.append(Swish(0.4))
+            return layers
 
-    def forward(self, x):
-        for layer in self.model:
-            x = layer(x)
-        return F.avg_pool2d(x, x.size()[2:]).view(x.size()[0], -1)
+        self.model = nn.Sequential(
+            *discriminator_block(3, 64, normalize=False),
+            *discriminator_block(64, 128),
+            *discriminator_block(128, 256),
+            *discriminator_block(256, 512),
+            nn.ZeroPad2d((1, 0, 1, 0)),
+            nn.Conv2d(512, 1, 4, padding=1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, img):
+        return self.model(img)
 
 
 class Generator(nn.Module):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, n_residual):
+        super(Generator, self).__init__()
 
-        self.layers = [nn.ReflectionPad2d(3)]
+        def encoder_block(in_filters, out_filters, kernel_size, stride=1, padding=0, swish_beta=0.0, normalize=True):
+            layers = [nn.Conv2d(in_filters, out_filters, kernel_size, stride=stride, padding=padding)]
+            if normalize:
+                layers.append(nn.InstanceNorm2d(out_filters))
+            if swish_beta > 0.0:
+                layers.append(Swish(swish_beta))
+            else:
+                layers.append(nn.ReLU(inplace=True))
+            return layers
 
-        self.layers += [
-            ConvolutionalLayer(3, 64, 7, 1, 0),
-            ConvolutionalLayer(64, 128, 3, 2, 1),
-            ConvolutionalLayer(128, 256, 3, 2, 1)
+        def decoder_block(in_filters, out_filters, kernel_size, stride=1, padding=0, swish_beta=0.0, normalize=True):
+            layers = [nn.Upsample(scale_factor=2),
+                      nn.ConvTranspose2d(in_filters, out_filters, kernel_size, stride=stride, padding=padding)]
+            if normalize:
+                layers.append(nn.InstanceNorm2d(out_filters))
+            if swish_beta > 0.0:
+                layers.append(Swish(swish_beta))
+            else:
+                layers.append(nn.ReLU(inplace=True))
+            return layers
+
+        layers = list()
+
+        # Encoder
+        layers += [
+            nn.ReflectionPad2d(3),
+            *encoder_block(3, 64, 7),
+            *encoder_block(64, 128, 3, stride=2, padding=1),
+            *encoder_block(128, 256, 3, stride=2, padding=1)
         ]
 
-        for _ in range(11):
-            self.layers += [ResidualBlock(256)]
+        # Transformer
+        for _ in range(n_residual):
+            layers += [ResidualBlock(256)]
 
-        self.layers += [
-            TransposeConvolutionalLayer(256, 128, 3, 2, 1, 1),
-            TransposeConvolutionalLayer(128, 64, 3, 2, 1, 1)
-        ]
+        # Decoder
+        layers += [
+            *decoder_block(256, 128, 3, stride=1, padding=1),
+            *decoder_block(128, 64, 3, stride=1, padding=1),
 
-        self.layers += [
             nn.ReflectionPad2d(3),
             nn.Conv2d(64, 3, 7),
             nn.Tanh()
         ]
 
-        self.layers = nn.Sequential(*self.layers)
+        self.model = nn.Sequential(*layers)
 
     def forward(self, x):
-        return self.layers(x)
+        return self.model(x)
 
 
 class RealMoNetModel:
     def __init__(self, name):
         self.name = name
         self.D_A = Discriminator()
-        self.G_A = Generator()
+        self.G_AB = Generator(5)
         self.D_B = Discriminator()
-        self.G_B = Generator()
+        self.G_BA = Generator(5)
+
+
+def init_weights(m):
+    classname = m.__class__.__name__
+    if classname.find("Conv") != -1:
+        torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
+        if hasattr(m, "bias") and m.bias is not None:
+            torch.nn.init.constant_(m.bias.data, 0.0)
+    elif classname.find("BatchNorm2d") != -1:
+        torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
+        torch.nn.init.constant_(m.bias.data, 0.0)
 
 
 def save(model):

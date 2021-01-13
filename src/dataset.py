@@ -5,35 +5,48 @@ from torch.utils.data import Dataset
 from skimage.io import imread
 from PIL import Image
 from tqdm import tqdm
+from util import image_to_tensor, preprocess_image
+
+import matplotlib.pyplot as plt
 
 PHOTO_RAW_DIR = "data/photos_raw"
 PHOTO_SET_DIR = "data/photos_set"
 PAINTING_RAW_DIR = "data/paintings_raw"
 PAINTING_SET_DIR = "data/paintings_set"
-DATA_RESOLUTION = (1024, 1024)
+RESOLUTION = (256, 256)
+DATA_SHAPE = (3, RESOLUTION[0], RESOLUTION[1])
 
 
 class RealMoNetDataset(Dataset):
     def __init__(self, set_dir):
         self.set_dir = set_dir
+        self.preprocess = True
 
     def __len__(self):
         return len(os.listdir(self.set_dir))
 
     def __getitem__(self, i):
-        image = imread(os.path.join(self.set_dir, "%s.jpg" % str(i).zfill(4)))
-        return torch.from_numpy(image).float() / 255
+        image = Image.fromarray(imread(os.path.join(self.set_dir, "%s.jpg" % str(i).zfill(4))))
+        if self.preprocess:
+            image = preprocess_image(image)
+        return image_to_tensor(image)
 
     def get_split(self, train_percentage):
         train = int(self.__len__() * train_percentage)
         test = self.__len__() - train
         return [train, test]
 
+    def eval(self):
+        self.preprocess = False
+
+    def train(self):
+        self.preprocess = True
+
 
 def build():
     """Runs the generator to convert raw images to dataset images."""
-    _build_set(PHOTO_RAW_DIR, PHOTO_SET_DIR, DATA_RESOLUTION)
-    _build_set(PAINTING_RAW_DIR, PAINTING_SET_DIR, DATA_RESOLUTION)
+    _build_set(PHOTO_RAW_DIR, PHOTO_SET_DIR, RESOLUTION)
+    _build_set(PAINTING_RAW_DIR, PAINTING_SET_DIR, RESOLUTION)
 
 
 def _build_set(src_dir, dst_dir, target_resolution):
