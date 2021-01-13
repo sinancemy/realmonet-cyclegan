@@ -1,13 +1,10 @@
 import os
 
-import torch
 from torch.utils.data import Dataset
 from skimage.io import imread
 from PIL import Image
 from tqdm import tqdm
 from util import image_to_tensor, preprocess_image
-
-import matplotlib.pyplot as plt
 
 PHOTO_RAW_DIR = "data/photos_raw"
 PHOTO_SET_DIR = "data/photos_set"

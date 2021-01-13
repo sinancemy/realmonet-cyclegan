@@ -4,7 +4,6 @@ from dataset import DATA_SHAPE
 import numpy as np
 from util import *
 from model import init_weights
-import matplotlib.pyplot as plt
 
 
 def train(model, dl_A, dl_B, device, params):

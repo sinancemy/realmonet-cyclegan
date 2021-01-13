@@ -22,7 +22,7 @@ else:
 time.sleep(1)  # For clean printing.
 
 # Rebuild dataset
-REBUILD_DATASET = True
+REBUILD_DATASET = False
 if REBUILD_DATASET:
     _dataset.build()
 

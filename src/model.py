@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 
-import dataset
-
 
 class Swish(nn.Module):
     def __init__(self, beta):
