@@ -1,5 +1,8 @@
 import torch
 import torch.nn as nn
+import os
+
+MODELS_DIR = "models"
 
 
 class Swish(nn.Module):
@@ -19,7 +22,7 @@ class ResidualBlock(nn.Module):
             nn.ReflectionPad2d(1),
             nn.Conv2d(features, features, 3),
             nn.InstanceNorm2d(features),
-            Swish(1.4),
+            Swish(2.4),
             nn.ReflectionPad2d(1),
             nn.Conv2d(features, features, 3),
             nn.InstanceNorm2d(features),
@@ -113,9 +116,24 @@ class RealMoNetModel:
     def __init__(self, name):
         self.name = name
         self.D_A = Discriminator()
-        self.G_AB = Generator(5)
+        self.G_AB = Generator(7)
         self.D_B = Discriminator()
-        self.G_BA = Generator(5)
+        self.G_BA = Generator(7)
+
+    def save(self):
+        if not os.path.exists(os.path.join(MODELS_DIR, self.name)):
+            os.mkdir(os.path.join(MODELS_DIR, self.name))
+        torch.save(self.D_A.state_dict(), os.path.join(MODELS_DIR, self.name, "D_A.rmn"))
+        torch.save(self.G_AB.state_dict(), os.path.join(MODELS_DIR, self.name, "G_AB.rmn"))
+        torch.save(self.D_B.state_dict(), os.path.join(MODELS_DIR, self.name, "D_B.rmn"))
+        torch.save(self.G_BA.state_dict(), os.path.join(MODELS_DIR, self.name, "G_BA.rmn"))
+
+    def load(self, name):
+        self.name = name
+        self.D_A.load_state_dict(torch.load(os.path.join(MODELS_DIR, self.name, "D_A.rmn")))
+        self.G_AB.load_state_dict(torch.load(os.path.join(MODELS_DIR, self.name, "G_AB.rmn")))
+        self.D_B.load_state_dict(torch.load(os.path.join(MODELS_DIR, self.name, "D_B.rmn")))
+        self.G_BA.load_state_dict(torch.load(os.path.join(MODELS_DIR, self.name, "G_BA.rmn")))
 
 
 def init_weights(m):
@@ -127,11 +145,3 @@ def init_weights(m):
     elif classname.find("BatchNorm2d") != -1:
         torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
         torch.nn.init.constant_(m.bias.data, 0.0)
-
-
-def save(model):
-    pass
-
-
-def load(model):
-    pass

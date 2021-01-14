@@ -92,7 +92,7 @@ def train(model, dl_A, dl_B, device, params):
             loss_cycle = (loss_cycle_ABA + loss_cycle_BAB) / 2
 
             # Total loss
-            loss_G = loss_GAN + 15 * loss_cycle + 10 * loss_identity
+            loss_G = loss_GAN + 10 * loss_cycle + 5 * loss_identity
 
             loss_G.backward()
             optim_G.step()
@@ -129,8 +129,8 @@ def train(model, dl_A, dl_B, device, params):
             loss_D_B.backward()
             optim_D_B.step()
 
-            print("GAN loss:", loss_G.data.item(), " | Disc_A loss: ", loss_D_A.item(), " | Disc_B loss: ",
-                  loss_D_B.item())
+            # print("GAN loss:", loss_G.data.item(), " | Disc_A loss: ", loss_D_A.item(), " | Disc_B loss: ",
+            #       loss_D_B.item())
 
         # Update learning rates
         lr_scheduler_G.step()
@@ -143,10 +143,18 @@ def train(model, dl_A, dl_B, device, params):
         converted = list()
         converted.append((tensor_to_image(real_A[0]), tensor_to_image(model.G_AB(real_A)[0])))
         converted.append((tensor_to_image(real_B[0]), tensor_to_image(model.G_BA(real_B)[0])))
-        plot_output(converted)
+        plot_output(converted, 10)
+
+        # Save model after each epoch
+        model.save()
 
 
 def convert(model, device, dl_A=None, dl_B=None):
+    model.D_A.to(device)
+    model.G_AB.to(device)
+    model.D_B.to(device)
+    model.G_BA.to(device)
+
     converted = list()
     if dl_A is not None and dl_B is None:
         model.G_AB.eval()

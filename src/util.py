@@ -25,11 +25,13 @@ def preprocess_image(image):
     ])(image)
 
 
-def plot_output(output):
-    L = len(output)
-    plt.figure(figsize=(L * 2, 4))
+def plot_output(output, max_plot=10):
+    L = min(len(output), max_plot)
+    plt.figure(figsize=(L * 4, 8))
     plt.tight_layout(0.1)
     for i, imgs in enumerate(output):
+        if i == max_plot:
+            break
         a, b = imgs
         plt.subplot(2, L, i + 1)
         plt.axis("off")
