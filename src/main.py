@@ -27,21 +27,21 @@ if REBUILD_DATASET:
     _dataset.build()
 
 # Hyperparameters
-learning_rate = 7e-4
+learning_rate = 1e-4
 batch_size = 2
 epochs = 50
 decay_epoch = 20
-adam_betas = (0.5, 0.999)
+adam_betas = (0.55, 0.999)
 params = {"lr": learning_rate, "batch_size": batch_size, "epochs": epochs, "decay_epoch": decay_epoch, "adam_betas": adam_betas}
 
 # Load data
 photo_set = _dataset.RealMoNetDataset(_dataset.PHOTO_SET_DIR)
-train_photos, test_photos = torch.utils.data.random_split(photo_set, photo_set.get_split(0.95))
+train_photos, test_photos = torch.utils.data.random_split(photo_set, photo_set.get_split(0.90))
 train_photos_loader = DataLoader(train_photos, batch_size=int(batch_size/2), shuffle=True)
 test_photos_loader = DataLoader(test_photos, batch_size=1, shuffle=False)
 
 painting_set = _dataset.RealMoNetDataset(_dataset.PAINTING_SET_DIR)
-train_paintings, test_paintings = torch.utils.data.random_split(painting_set, painting_set.get_split(0.95))
+train_paintings, test_paintings = torch.utils.data.random_split(painting_set, painting_set.get_split(0.90))
 train_paintings_loader = DataLoader(dataset=train_paintings, batch_size=int(batch_size/2), shuffle=True)
 test_paintings_loader = DataLoader(dataset=test_paintings, batch_size=1, shuffle=False)
 
@@ -51,12 +51,13 @@ model = _model.RealMoNetModel("RealMoNet-%d" % int(time.time()))
 # Train model
 # _operate.train(model, train_photos_loader, train_paintings_loader, device, params)
 
-model.load("RealMoNet-1610633400")
+# or Load model
+# model.load("RealMoNet-Pretrained1")
 
 # Convert and plot test images
 painting_set.eval()
 photo_set.eval()
 A_to_B_output = _operate.convert(model, device, test_photos_loader, None)
 B_to_A_output = _operate.convert(model, device, None, test_paintings_loader)
-_util.plot_output(A_to_B_output, 20)
-_util.plot_output(B_to_A_output, 20)
+_util.plot_output(A_to_B_output, 8)
+_util.plot_output(B_to_A_output, 8)
