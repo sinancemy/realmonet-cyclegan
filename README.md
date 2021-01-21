@@ -9,6 +9,7 @@ This project is our term project for our Computer Vision with Deep Learning cour
   - PyTorch
   - scikit-image
   - tqdm
+  - PIL
   
 ## Dataset Sources
 - [Kaggle](https://www.kaggle.com/arnaud58/landscape-pictures): Filtered by handpicking and code, appropriated by code.
