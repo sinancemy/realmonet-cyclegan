@@ -49,7 +49,7 @@ test_paintings_loader = DataLoader(dataset=test_paintings, batch_size=1, shuffle
 model = _model.RealMoNetModel("RealMoNet-%d" % int(time.time()))
 
 # Train model
-# _operate.train(model, train_photos_loader, train_paintings_loader, device, params)
+_operate.train(model, train_photos_loader, train_paintings_loader, device, params)
 
 # or Load model
 # model.load("RealMoNet-Pretrained1")
